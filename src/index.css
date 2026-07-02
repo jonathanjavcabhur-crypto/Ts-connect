@@ -1,0 +1,446 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #050508;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  color: #ffffff;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Liquid Glass Backdrop Keyframes */
+@keyframes float-blob-1 {
+  0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+  33% { transform: translate(30px, -50px) scale(1.15) rotate(120deg); }
+  66% { transform: translate(-20px, 20px) scale(0.9) rotate(240deg); }
+  100% { transform: translate(0px, 0px) scale(1) rotate(360deg); }
+}
+
+@keyframes float-blob-2 {
+  0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+  50% { transform: translate(-40px, 40px) scale(1.2) rotate(-180deg); }
+  100% { transform: translate(0px, 0px) scale(1) rotate(360deg); }
+}
+
+@keyframes float-blob-3 {
+  0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+  40% { transform: translate(50px, 20px) scale(0.85) rotate(90deg); }
+  70% { transform: translate(-10px, -40px) scale(1.1) rotate(210deg); }
+  100% { transform: translate(0px, 0px) scale(1) rotate(360deg); }
+}
+
+@keyframes float-blob-4 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(-25px, -30px) scale(1.15); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob-1 {
+  animation: float-blob-1 22s infinite alternate ease-in-out;
+}
+.animate-blob-2 {
+  animation: float-blob-2 28s infinite alternate ease-in-out;
+}
+.animate-blob-3 {
+  animation: float-blob-3 24s infinite alternate ease-in-out;
+}
+.animate-blob-4 {
+  animation: float-blob-4 18s infinite alternate ease-in-out;
+}
+
+/* Liquid Glass (Glassmorphism) Base Styles */
+.liquid-glass {
+  background: rgba(10, 10, 15, 0.65);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.liquid-glass-light {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Glow Elements */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(207, 160, 96, 0.45), inset 0 0 10px rgba(207, 160, 96, 0.2);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.45), inset 0 0 10px rgba(6, 182, 212, 0.2);
+}
+
+.glow-magenta {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.45), inset 0 0 10px rgba(236, 72, 153, 0.2);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.45), inset 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+/* 3D Perspective Card Tilt and Hover Effect */
+.card-3d-wrapper {
+  perspective: 1000px;
+}
+
+.card-3d {
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+}
+
+.card-3d:hover {
+  transform: translateY(-8px) rotateX(4deg) rotateY(-4deg) scale(1.03);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 255, 255, 0.12);
+}
+
+.card-3d:active {
+  transform: translateY(-2px) rotateX(1deg) rotateY(-1deg) scale(0.99);
+}
+
+/* Fluid UI background flow */
+.bg-fluid-radial {
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(207, 160, 96, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.12) 0%, transparent 50%);
+}
+
+/* Glass shine overlay */
+.glass-shine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.08) 30%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0.08) 70%,
+    transparent
+  );
+  transition: left 0.8s ease;
+}
+
+.glass-shine:hover::after {
+  left: 150%;
+}
+
+/* iOS 27 Hyper-Realistic Glass with Glossy Neon Edges */
+.ios27-glass {
+  background: rgba(12, 8, 24, 0.45);
+  backdrop-filter: blur(32px) saturate(220%);
+  -webkit-backdrop-filter: blur(32px) saturate(220%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 15px 45px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 20px rgba(217, 70, 239, 0.1),
+    inset 0 1px 20px rgba(6, 182, 212, 0.1);
+}
+
+.neon-edge-magenta {
+  border: 1px solid rgba(217, 70, 239, 0.45);
+  box-shadow: 
+    0 0 15px rgba(217, 70, 239, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 0 10px rgba(217, 70, 239, 0.15);
+}
+
+.neon-edge-cyan {
+  border: 1px solid rgba(6, 182, 212, 0.45);
+  box-shadow: 
+    0 0 15px rgba(6, 182, 212, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 0 10px rgba(6, 182, 212, 0.15);
+}
+
+.isometric-container {
+  perspective: 1200px;
+}
+
+.isometric-card {
+  transform: rotateX(12deg) rotateY(-8deg) rotateZ(2deg);
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    -10px 15px 35px rgba(0, 0, 0, 0.7),
+    0 0 20px rgba(217, 70, 239, 0.15),
+    0 0 40px rgba(6, 182, 212, 0.1);
+}
+
+.isometric-card:hover {
+  transform: rotateX(4deg) rotateY(-2deg) rotateZ(0deg) translateY(-8px) scale(1.05);
+  box-shadow: 
+    -5px 25px 45px rgba(0, 0, 0, 0.5),
+    0 0 35px rgba(217, 70, 239, 0.35),
+    0 0 60px rgba(6, 182, 212, 0.25);
+}
+
+/* Iridescent Premium Spotlight Layout CSS */
+.screen-container {
+  border: 1.5px solid transparent;
+  border-image: linear-gradient(135deg, #FF2A85, #7B2CBF, #00F5D4) 1;
+  box-shadow: 0 0 25px rgba(123, 44, 191, 0.6), inset 0 0 15px rgba(0, 245, 212, 0.2);
+  background: #040209;
+}
+
+.card {
+  width: 320px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-radius: 29px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 280px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  position: relative;
+}
+
+.tag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.info h2 {
+  color: #fff;
+  margin: 16px 0 4px 0;
+  font-size: 22px;
+}
+
+.info p {
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0 0 8px 0;
+  font-size: 15px;
+}
+
+/* Unicorn Profile Card (SwiftUI Translation) */
+.unicorn-card-wrapper {
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+}
+
+.unicorn-profile-card {
+  width: 320px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-radius: 28px;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  box-shadow: 0 0 20px rgba(123, 44, 191, 0.8);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.unicorn-profile-card.is-active-vibe {
+  animation: neon-glow-pulse 4s ease-in-out infinite alternate;
+}
+
+/* Gradient outline with stroke/border effect and glow shadow matching SwiftUI overlay */
+.unicorn-card-border-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  padding: 2px; /* standard CSS gradient border technique */
+  background: linear-gradient(135deg, #FF2985, #7B2CBF, #00F5D4);
+  -webkit-mask: 
+     linear-gradient(#fff 0 0) content-box, 
+     linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  transform: translateZ(5px);
+  overflow: hidden;
+}
+
+.unicorn-card-border-overlay.is-active {
+  background: transparent;
+}
+
+.unicorn-card-border-overlay.is-active::before {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  background: conic-gradient(from 0deg, var(--gradient-colors, #FF2985, #7B2CBF, #00F5D4, #FF2985));
+  animation: rotate-gradient 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotate-gradient {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes neon-glow-pulse {
+  0% {
+    box-shadow: 0 0 15px rgba(123, 44, 191, 0.5), 0 0 5px rgba(0, 245, 212, 0.2);
+  }
+  100% {
+    box-shadow: 0 0 35px rgba(255, 41, 133, 0.85), 0 0 15px rgba(0, 245, 212, 0.5);
+  }
+}
+
+.unicorn-image-container {
+  width: 100%;
+  height: 280px;
+  border-radius: 24px;
+  position: relative;
+  background: rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  transform: translateZ(15px);
+  transform-style: preserve-3d;
+}
+
+.unicorn-floating-tag {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateZ(35px);
+}
+
+.unicorn-info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 16px 20px 16px;
+  transform: translateZ(25px);
+  transform-style: preserve-3d;
+}
+
+.unicorn-title {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.unicorn-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Interactive Floating Heart Appreciation Styles */
+.unicorn-floating-heart {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+  font-size: 24px;
+  line-height: 1;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+@keyframes floatUpAndFade {
+  0% {
+    transform: translate3d(0, 0, 40px) scale(0.3) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+    transform: translate3d(calc(var(--heart-sway) * 0.15), -20px, 40px) scale(var(--heart-scale)) rotate(calc(var(--heart-rot-end) * 0.25));
+  }
+  100% {
+    transform: translate3d(var(--heart-sway), -220px, 40px) scale(calc(var(--heart-scale) * 0.6)) rotate(var(--heart-rot-end));
+    opacity: 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+
+
+

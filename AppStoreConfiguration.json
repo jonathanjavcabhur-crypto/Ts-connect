@@ -1,0 +1,22 @@
+{
+  "app_metadata": {
+    "name": "TS Connect",
+    "description": "A premium, inclusive social connect platform to find your vibe, explore diverse profiles, and filter connections with custom themes.",
+    "bundle_id": "com.tsconnect.app",
+    "version": "1.0.0",
+    "minimum_os_version": "15.0"
+  },
+  "privacy_policy": {
+    "url": "https://www.example.com/privacy-policy"
+  },
+  "technical_specifications": {
+    "supported_devices": [
+      "iPhone",
+      "iPad"
+    ],
+    "orientation": "portrait",
+    "languages": [
+      "en"
+    ]
+  }
+}

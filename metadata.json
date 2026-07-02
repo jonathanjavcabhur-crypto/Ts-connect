@@ -1,0 +1,6 @@
+{
+  "name": "TS Connect",
+  "description": "A premium, inclusive social connect platform to find your vibe, explore diverse profiles, and filter connections with custom themes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
