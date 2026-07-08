@@ -11,8 +11,9 @@ import ProfileView from "./components/ProfileView";
 import ChatWindow from "./components/ChatWindow";
 import RightNowVibe from "./components/RightNowVibe";
 import NearbyView from "./components/NearbyView";
-import IntroScreen from "./components/IntroScreen";
-import LoginScreen from "./components/LoginScreen";
+  import IntroScreen from "./components/IntroScreen";
+  import LoginScreen from "./components/LoginScreen";
+  import RegisterScreen from "./components/RegisterScreen";
 import SplashScreen from "./components/SplashScreen";
 import { MOCK_USERS } from "./data/mockUsers";
 import { THEMES } from "./constants/themes";
@@ -416,8 +417,9 @@ export default function App() {
   // Navigation & View state
   const [currentScreen, setCurrentScreen] = useState<"grid" | "profile" | "chat" | "right-now" | "nearby">("grid");
   const [discoveryMode, setDiscoveryMode] = useState<"grid" | "swipe">("grid");
-  const [appStage, setAppStage] = useState<"splash" | "intro" | "login" | "main">("splash");
+  const [appStage, setAppStage] = useState<"splash" | "intro" | "login" | "register" | "main">("splash");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [authUser, setAuthUser] = useState<{ id: string; name: string; email: string } | null>(null);
 
   // Simulated live clock for iOS status bar
   const [timeString, setTimeString] = useState(() => {
@@ -970,7 +972,22 @@ export default function App() {
         />
       ) : appStage === "login" ? (
         <LoginScreen
-          onLoginSuccess={() => setAppStage("main")}
+          onLoginSuccess={(user) => {
+            setAuthUser(user);
+            setAppStage("main");
+          }}
+          onSwitchToRegister={() => setAppStage("register")}
+          vibeEnabled={vibeEnabled}
+          vibeDuration={vibeDuration}
+          vibeIntensity={vibeIntensity}
+        />
+      ) : appStage === "register" ? (
+        <RegisterScreen
+          onRegisterSuccess={(user) => {
+            setAuthUser(user);
+            setAppStage("main");
+          }}
+          onSwitchToLogin={() => setAppStage("login")}
           vibeEnabled={vibeEnabled}
           vibeDuration={vibeDuration}
           vibeIntensity={vibeIntensity}

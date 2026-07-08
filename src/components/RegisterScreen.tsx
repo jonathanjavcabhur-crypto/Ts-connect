@@ -1,23 +1,24 @@
 import React, { useState } from "react";
-import { Lock, Mail, Eye, EyeOff, Sparkles, Flame, CheckCircle } from "lucide-react";
+import { Lock, Mail, User, Eye, EyeOff, Sparkles, Flame, CheckCircle } from "lucide-react";
 import { triggerHaptic } from "../App";
-import { loginAccount, type AuthUser } from "../lib/authApi";
+import { registerAccount, type AuthUser } from "../lib/authApi";
 
-interface LoginScreenProps {
-  onLoginSuccess: (user: AuthUser) => void;
-  onSwitchToRegister: () => void;
+interface RegisterScreenProps {
+  onRegisterSuccess: (user: AuthUser) => void;
+  onSwitchToLogin: () => void;
   vibeEnabled: boolean;
   vibeDuration: number;
   vibeIntensity: number;
 }
 
-export default function LoginScreen({
-  onLoginSuccess,
-  onSwitchToRegister,
+export default function RegisterScreen({
+  onRegisterSuccess,
+  onSwitchToLogin,
   vibeEnabled,
   vibeDuration,
   vibeIntensity,
-}: LoginScreenProps) {
+}: RegisterScreenProps) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -25,12 +26,18 @@ export default function LoginScreen({
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !password.trim()) {
-      setError("Por favor, introduce tu correo y contraseña.");
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError("Por favor, completa todos los campos.");
+      triggerHaptic(vibeEnabled, vibeDuration, vibeIntensity, "click");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres.");
       triggerHaptic(vibeEnabled, vibeDuration, vibeIntensity, "click");
       return;
     }
@@ -39,17 +46,17 @@ export default function LoginScreen({
     triggerHaptic(vibeEnabled, vibeDuration, vibeIntensity, "click");
 
     try {
-      const user = await loginAccount({ email, password });
+      const user = await registerAccount({ name, email, password });
       setIsLoading(false);
       setSuccess(true);
       triggerHaptic(vibeEnabled, vibeDuration, vibeIntensity, "like");
 
       setTimeout(() => {
-        onLoginSuccess(user);
-      }, 1600);
+        onRegisterSuccess(user);
+      }, 1800);
     } catch (err) {
       setIsLoading(false);
-      setError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
+      setError(err instanceof Error ? err.message : "No se pudo crear la cuenta.");
       triggerHaptic(vibeEnabled, vibeDuration, vibeIntensity, "click");
     }
   };
@@ -60,7 +67,7 @@ export default function LoginScreen({
       <div className="absolute top-[-10%] left-[-10%] w-[350px] h-[350px] rounded-full blur-[100px] opacity-25 bg-pink-600 mix-blend-screen pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] rounded-full blur-[120px] opacity-20 bg-purple-600 mix-blend-screen pointer-events-none" />
 
-      <div 
+      <div
         className="w-full max-w-md p-6 rounded-3xl border border-white/10 bg-black/55 backdrop-blur-3xl text-white shadow-2xl relative transition-all duration-700"
         style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.8)" }}
       >
@@ -70,14 +77,14 @@ export default function LoginScreen({
             <Flame size={28} className="text-pink-500 fill-pink-500" />
           </div>
           <div className="space-y-1">
-            <span 
+            <span
               className="text-xl font-bold tracking-[0.3em] text-white"
               style={{ fontFamily: "'Georgia', serif" }}
             >
               TS CONNECT
             </span>
             <p className="text-[10px] tracking-[0.2em] uppercase text-zinc-400 font-semibold">
-              Conexión Secreta & Genuina
+              Crea tu Conexión Secreta
             </p>
           </div>
         </div>
@@ -88,17 +95,36 @@ export default function LoginScreen({
               <CheckCircle size={44} className="animate-bounce" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-extrabold text-white">¡Vibe Autorizado!</h3>
-              <p className="text-xs text-zinc-400">Sincronizando frecuencias de usuario...</p>
+              <h3 className="text-base font-extrabold text-white">¡Cuenta Creada!</h3>
+              <p className="text-xs text-zinc-400">Preparando tu experiencia...</p>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleLoginSubmit} className="space-y-5">
+          <form onSubmit={handleRegisterSubmit} className="space-y-5">
             {error && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl text-center">
                 {error}
               </div>
             )}
+
+            {/* Name Field */}
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold tracking-widest text-zinc-400 uppercase block pl-1">
+                Nombre
+              </label>
+              <div className="relative">
+                <User size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <input
+                  type="text"
+                  placeholder="Tu nombre"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
+                  className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 hover:border-white/20 focus:border-pink-500/50 rounded-2xl text-xs text-white placeholder-zinc-500 outline-none transition-all"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
 
             {/* Email Field */}
             <div className="space-y-2">
@@ -112,6 +138,7 @@ export default function LoginScreen({
                   placeholder="tu@correo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                   className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 hover:border-white/20 focus:border-pink-500/50 rounded-2xl text-xs text-white placeholder-zinc-500 outline-none transition-all"
                   disabled={isLoading}
                 />
@@ -120,21 +147,17 @@ export default function LoginScreen({
 
             {/* Password Field */}
             <div className="space-y-2">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-[11px] font-bold tracking-widest text-zinc-400 uppercase block">
-                  Contraseña
-                </label>
-                <span className="text-[10px] text-zinc-500 hover:text-pink-400 cursor-pointer transition-colors">
-                  ¿Olvidaste tu contraseña?
-                </span>
-              </div>
+              <label className="text-[11px] font-bold tracking-widest text-zinc-400 uppercase block pl-1">
+                Contraseña
+              </label>
               <div className="relative">
                 <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Mínimo 6 caracteres"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   className="w-full pl-11 pr-11 py-3 bg-white/5 border border-white/10 hover:border-white/20 focus:border-pink-500/50 rounded-2xl text-xs text-white placeholder-zinc-500 outline-none transition-all"
                   disabled={isLoading}
                 />
@@ -159,58 +182,27 @@ export default function LoginScreen({
               ) : (
                 <>
                   <Sparkles size={14} className="text-pink-200" />
-                  <span>INICIAR SESIÓN</span>
+                  <span>CREAR CUENTA</span>
                 </>
               )}
             </button>
 
-            {/* Divider line */}
-            <div className="relative flex py-2 items-center">
-              <div className="flex-grow border-t border-white/5"></div>
-              <span className="flex-shrink mx-4 text-[9px] text-zinc-500 uppercase tracking-widest font-black">
-                O conecta con
-              </span>
-              <div className="flex-grow border-t border-white/5"></div>
-            </div>
-
-            {/* Social Login Options */}
-            <div className="grid grid-cols-3 gap-3">
-              <button
-                type="button"
-                className="py-3 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all"
-                title="Google"
-              >
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                className="py-3 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all"
-                title="iCloud"
-              >
-                <span className="text-white font-black text-xs">iC</span>
-              </button>
-              <button
-                type="button"
-                className="py-3 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all"
-                title="Teléfono"
-              >
-                <span className="text-white font-black text-xs">📱</span>
-              </button>
-            </div>
-
+            <p className="text-[9px] text-zinc-500 text-center leading-relaxed px-2">
+              Al registrarte aceptas nuestros Términos y la Política de Privacidad.
+            </p>
           </form>
         )}
 
         {!success && (
           <div className="text-center mt-6">
             <p className="text-[10px] text-zinc-500">
-              ¿No tienes cuenta?{" "}
+              ¿Ya tienes cuenta?{" "}
               <button
                 type="button"
-                onClick={onSwitchToRegister}
+                onClick={onSwitchToLogin}
                 className="text-pink-400 hover:underline cursor-pointer font-semibold"
               >
-                Regístrate
+                Inicia sesión
               </button>
             </p>
           </div>
