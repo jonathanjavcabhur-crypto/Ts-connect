@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion } from "motion/react";
+import { Analytics } from '@vercel/analytics/react';
 import { CheckCircle2 } from "lucide-react";
 import { VibeCardItem } from "./components/VibeCardItem";
 import { VibeSound } from "./components/VibeSound";
@@ -959,6 +960,7 @@ export default function App() {
 
   return (
     <>
+      <Analytics />
       {appStage === "splash" ? (
         <SplashScreen onComplete={() => setAppStage("intro")} />
       ) : appStage === "intro" ? (
