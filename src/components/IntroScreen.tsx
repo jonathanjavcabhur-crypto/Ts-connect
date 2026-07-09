@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Play, Volume2, VolumeX, Upload, RefreshCw } from "lucide-react";
 import { triggerHaptic } from "../App";
 import { motion, AnimatePresence } from "motion/react";
+import { getGlobalIntroVideo, setGlobalIntroVideo } from "../lib/userService";
 
 // IndexedDB constants for persistence
 const DB_NAME = "IntroVideoDB";
@@ -84,29 +85,50 @@ export default function IntroScreen({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Load video from IndexedDB or localStorage on component mount
+  // Load video from Firestore, localStorage cache, or IndexedDB on component mount
   useEffect(() => {
     const loadSavedVideo = async () => {
       try {
+        // 1. Try local cache URL first for instant zero-latency playback
         const savedUrl = localStorage.getItem("ts_connect_intro_video_url");
         if (savedUrl) {
           setVideoSrc(savedUrl);
           setPastedUrlInput(savedUrl);
           setVideoError(false);
+        }
+
+        // 2. Fetch from Firestore for global synchronized database source
+        const dbUrl = await getGlobalIntroVideo();
+        if (dbUrl) {
+          setVideoSrc(dbUrl);
+          setPastedUrlInput(dbUrl);
+          localStorage.setItem("ts_connect_intro_video_url", dbUrl);
+          setVideoError(false);
           return;
         }
 
-        const blob = await getVideoFromDB();
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          setVideoSrc(url);
-          setVideoError(false);
+        // 3. Fallback to local DB blob if exists and no Firestore URL is set
+        if (!savedUrl) {
+          const blob = await getVideoFromDB();
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            setVideoSrc(url);
+            setVideoError(false);
+          }
         }
       } catch (err) {
         console.error("Error loading saved video:", err);
       }
     };
     loadSavedVideo();
+  }, []);
+
+  // 2.5 second timer for cinematic intro text (much more snappy and engaging)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsCinematicDone(true);
+    }, 2500);
+    return () => clearTimeout(timer);
   }, []);
 
   // Playback control for video
@@ -153,36 +175,45 @@ export default function IntroScreen({
   };
 
   // Handle Video URL Save
-  const handleSaveUrl = () => {
+  const handleSaveUrl = async () => {
     if (!pastedUrlInput.trim()) {
       alert("Por favor introduce una URL válida.");
       return;
     }
     setIsSaving(true);
     try {
-      localStorage.setItem("ts_connect_intro_video_url", pastedUrlInput.trim());
+      const cleanUrl = pastedUrlInput.trim();
+      // Save permanently to Firestore config so it applies to all devices/sessions
+      await setGlobalIntroVideo(cleanUrl);
+
+      localStorage.setItem("ts_connect_intro_video_url", cleanUrl);
       deleteVideoFromDB().catch(console.error);
-      setVideoSrc(pastedUrlInput.trim());
+      setVideoSrc(cleanUrl);
       setVideoError(false);
       setIsPlaying(true);
       setShowConfig(false);
     } catch (err) {
-      console.error("Error saving video URL:", err);
+      console.error("Error saving video URL to database:", err);
+      alert("Error al guardar el video en la base de datos.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleResetVideo = async () => {
+    setIsSaving(true);
     try {
       await deleteVideoFromDB();
       localStorage.removeItem("ts_connect_intro_video_url");
+      // Reset Firestore config as well
+      await setGlobalIntroVideo("");
       setPastedUrlInput("");
       setVideoSrc(DEFAULT_VIDEO);
       setVideoError(false);
     } catch (err) {
       console.error("Error deleting video:", err);
     } finally {
+      setIsSaving(false);
       setShowConfig(false);
     }
   };
@@ -199,7 +230,14 @@ export default function IntroScreen({
 
   return (
     <div
+      onClick={() => {
+        if (!isCinematicDone) {
+          setIsCinematicDone(true);
+        }
+      }}
       className={`fixed inset-0 w-full h-full bg-[#020205] z-[9999] flex flex-col justify-between items-center transition-all duration-700 ease-in-out ${
+        !isCinematicDone ? "cursor-pointer" : ""
+      } ${
         hasEntered ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
@@ -239,7 +277,6 @@ export default function IntroScreen({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.5, filter: "blur(20px)" }}
             transition={{ duration: 1.5, ease: "easeInOut" }}
-            onAnimationComplete={() => setIsCinematicDone(true)}
             className="absolute inset-0 flex items-center justify-center z-30"
           >
             <motion.h1 

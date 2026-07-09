@@ -20,7 +20,8 @@ import {
   Clock,
   Activity,
   CheckCircle2,
-  RefreshCw
+  RefreshCw,
+  Share2
 } from "lucide-react";
 
 interface ProfileViewProps {
@@ -29,6 +30,7 @@ interface ProfileViewProps {
   onStartChat: (userId: string) => void;
   onBlock: (userId: string) => void;
   themeId: string;
+  onTriggerHaptic?: (type: "click" | "like" | "pass") => void;
 }
 
 interface DetailedBio {
@@ -146,12 +148,67 @@ export default function ProfileView({
   onStartChat,
   onBlock,
   themeId,
+  onTriggerHaptic,
 }: ProfileViewProps) {
   const theme = THEMES[themeId];
   const [photoIndex, setPhotoIndex] = useState(0);
   const [liked, setLiked] = useState(false);
   const [playingClipIndex, setPlayingClipIndex] = useState<number | null>(null);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
+  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
+
+  const handleShare = async () => {
+    const deepLink = `${window.location.origin}/?profile=${user.id}`;
+    let copied = false;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(deepLink);
+        copied = true;
+      }
+    } catch (err) {
+      console.warn("Clipboard API failed, trying fallback", err);
+    }
+    
+    if (!copied) {
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = deepLink;
+        textArea.style.top = "0";
+        textArea.style.left = "0";
+        textArea.style.position = "fixed";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand("copy");
+        document.body.removeChild(textArea);
+        if (successful) {
+          copied = true;
+        }
+      } catch (err) {
+        console.error("Fallback copying failed", err);
+      }
+    }
+
+    if (copied) {
+      if (onTriggerHaptic) {
+        onTriggerHaptic("like");
+      } else if (navigator.vibrate) {
+        navigator.vibrate([100, 30, 100]);
+      }
+      setShowToast(true);
+    } else {
+      alert(`Enlace de perfil: ${deepLink}`);
+    }
+  };
 
   // Cleanup audio on unmount or user change
   useEffect(() => {
@@ -232,6 +289,13 @@ export default function ProfileView({
           <span className="text-sm font-black block leading-tight">{user.name}'s Vibe</span>
         </div>
         <div className="flex items-center space-x-1.5">
+          <button 
+            onClick={handleShare}
+            className="p-2 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 transition-all flex items-center justify-center cursor-pointer active:scale-90 text-cyan-400 hover:text-cyan-300"
+            title="Share Profile"
+          >
+            <Share2 size={18} />
+          </button>
           <button 
             onClick={() => setLiked(!liked)}
             className="p-2 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 transition-all flex items-center justify-center cursor-pointer active:scale-90"
@@ -617,6 +681,35 @@ export default function ProfileView({
           </div>
         )}
 
+        {/* Share Profile Action Box */}
+        <div className="p-4 rounded-3xl bg-white/5 border border-white/10 space-y-3">
+          <div className="flex items-center space-x-2">
+            <div className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-cyan-400">
+              <Share2 size={14} />
+            </div>
+            <div>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-300 leading-tight">
+                Share Connection
+              </h4>
+              <p className="text-[9px] text-zinc-500 font-mono leading-none mt-0.5">
+                Let others discover {user.name}'s unique vibe signature
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleShare}
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 cursor-pointer active:scale-98 text-white hover:brightness-110"
+            style={{ 
+              backgroundColor: `${theme.primary}20`,
+              border: `1px solid ${theme.primary}40`,
+              color: theme.textPrimary
+            }}
+          >
+            <Share2 size={13} style={{ color: theme.primary }} />
+            <span>Copy Custom Deep Link</span>
+          </button>
+        </div>
+
         {/* Safety & Moderation Actions */}
         <div className="pt-4 border-t border-white/5 space-y-2">
           <h3 className="text-[10px] font-black uppercase tracking-wider text-red-500/80">
@@ -652,6 +745,27 @@ export default function ProfileView({
           <span>Message {user.name}</span>
         </button>
       </div>
+
+      {/* Success Toast Notification */}
+      <AnimatePresence>
+        {showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center space-x-2.5 px-4 py-3 rounded-2xl bg-zinc-900/95 border border-emerald-500/30 text-white text-xs font-semibold shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur-md"
+            style={{
+              boxShadow: `0 8px 30px rgba(16, 185, 129, 0.15), inset 0 0 10px rgba(255,255,255,0.05)`
+            }}
+          >
+            <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+              <CheckCircle2 size={14} />
+            </div>
+            <span>¡Enlace del perfil de {user.name} copiado!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

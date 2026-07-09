@@ -18,5 +18,46 @@
     "languages": [
       "en"
     ]
-  }
+  },
+  "in_app_purchases": [
+    {
+      "product_id": "com.tsconnect.app.premium.monthly",
+      "type": "Auto-Renewable Subscription",
+      "reference_name": "TS Connect Gold - 1 Month",
+      "price_tier": "12.99 EUR",
+      "duration": "1 Month",
+      "features": [
+        "Double Haptic Pulse",
+        "Gold Highlight Profile Aura",
+        "All Unlimited Custom Themes",
+        "Advanced Filter (Distance & Online Status)"
+      ]
+    },
+    {
+      "product_id": "com.tsconnect.app.premium.quarterly",
+      "type": "Auto-Renewable Subscription",
+      "reference_name": "TS Connect Gold - 3 Months",
+      "price_tier": "26.97 EUR (8.99 EUR/month)",
+      "duration": "3 Months",
+      "features": [
+        "Double Haptic Pulse",
+        "Gold Highlight Profile Aura",
+        "All Unlimited Custom Themes",
+        "Advanced Filter (Distance & Online Status)"
+      ]
+    },
+    {
+      "product_id": "com.tsconnect.app.premium.yearly",
+      "type": "Auto-Renewable Subscription",
+      "reference_name": "TS Connect Gold - 12 Months",
+      "price_tier": "59.88 EUR (4.99 EUR/month)",
+      "duration": "1 Year",
+      "features": [
+        "Double Haptic Pulse",
+        "Gold Highlight Profile Aura",
+        "All Unlimited Custom Themes",
+        "Advanced Filter (Distance & Online Status)"
+      ]
+    }
+  ]
 }

@@ -14,7 +14,11 @@ import NearbyView from "./components/NearbyView";
 import IntroScreen from "./components/IntroScreen";
 import LoginScreen from "./components/LoginScreen";
 import SplashScreen from "./components/SplashScreen";
+import PremiumPaywallModal from "./components/PremiumPaywallModal";
+import InteractiveGuide from "./components/InteractiveGuide";
 import { MOCK_USERS } from "./data/mockUsers";
+import { auth } from "./lib/firebase";
+import { getUserProfile, UserProfile } from "./lib/userService";
 import { THEMES } from "./constants/themes";
 import DiscoveryDeck from "./components/DiscoveryDeck";
 import ProfileBadge from "./components/ProfileBadge";
@@ -38,7 +42,9 @@ import {
   Battery,
   X,
   Settings,
-  Grid
+  Grid,
+  Crown,
+  HelpCircle
 } from "lucide-react";
 
 export function triggerHaptic(enabled: boolean, duration: number, intensity: number, type: "click" | "like" | "pass") {
@@ -418,6 +424,29 @@ export default function App() {
   const [discoveryMode, setDiscoveryMode] = useState<"grid" | "swipe">("grid");
   const [appStage, setAppStage] = useState<"splash" | "intro" | "login" | "main">("splash");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<UserProfile | null>(null);
+
+  // Sync auth state
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        console.log("App: User authenticated with UID:", firebaseUser.uid);
+        const profile = await getUserProfile(firebaseUser.uid);
+        if (profile) {
+          setCurrentUserProfile(profile);
+          setAppStage((prev) => (prev === "splash" || prev === "intro" || prev === "login" ? "main" : prev));
+        } else {
+          setCurrentUserProfile(null);
+          setAppStage("login");
+        }
+      } else {
+        console.log("App: No user is authenticated");
+        setCurrentUserProfile(null);
+        setAppStage((prev) => (prev === "main" ? "login" : prev));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Simulated live clock for iOS status bar
   const [timeString, setTimeString] = useState(() => {
@@ -442,10 +471,21 @@ export default function App() {
     return localStorage.getItem("ts_connect_theme") || "iridescent_silk";
   });
   const [showPicker, setShowPicker] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    if (appStage === "main") {
+      const isCompleted = localStorage.getItem("ts_connect_tutorial_completed");
+      if (!isCompleted) {
+        setShowGuide(true);
+      }
+    }
+  }, [appStage]);
 
   // Advanced Filters Sidebar states
   const [showFilters, setShowFilters] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [vibeEnabled, setVibeEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem("ts_connect_vibe_enabled");
     return saved !== null ? saved === "true" : true;
@@ -960,17 +1000,39 @@ export default function App() {
   return (
     <>
       {appStage === "splash" ? (
-        <SplashScreen onComplete={() => setAppStage("intro")} />
+        <SplashScreen 
+          onComplete={() => {
+            if (currentUserProfile) {
+              setAppStage("main");
+            } else {
+              setAppStage("intro");
+            }
+          }} 
+        />
       ) : appStage === "intro" ? (
         <IntroScreen
-          onEnter={() => setAppStage("login")}
+          onEnter={() => {
+            if (currentUserProfile) {
+              setAppStage("main");
+            } else {
+              setAppStage("login");
+            }
+          }}
           vibeEnabled={vibeEnabled}
           vibeDuration={vibeDuration}
           vibeIntensity={vibeIntensity}
         />
       ) : appStage === "login" ? (
         <LoginScreen
-          onLoginSuccess={() => setAppStage("main")}
+          onLoginSuccess={async (userId) => {
+            if (userId) {
+              const profile = await getUserProfile(userId);
+              if (profile) {
+                setCurrentUserProfile(profile);
+              }
+            }
+            setAppStage("main");
+          }}
           vibeEnabled={vibeEnabled}
           vibeDuration={vibeDuration}
           vibeIntensity={vibeIntensity}
@@ -1267,6 +1329,22 @@ export default function App() {
                       </button>
 
                       <button 
+                        onClick={() => setShowPremiumModal(true)} 
+                        className={`w-9 h-9 rounded-full border flex items-center justify-center transition-all cursor-pointer active:scale-90 hover:opacity-80 ${
+                          currentUserProfile?.premium ? "animate-pulse" : ""
+                        }`}
+                        style={{ 
+                          borderColor: currentUserProfile?.premium ? "rgba(234, 179, 8, 0.5)" : `${theme.primary}50`, 
+                          backgroundColor: currentUserProfile?.premium ? "rgba(234, 179, 8, 0.15)" : `${theme.primary}18`,
+                          color: currentUserProfile?.premium ? "#eab308" : theme.primary,
+                          boxShadow: currentUserProfile?.premium ? "0 0 10px rgba(234, 179, 8, 0.2)" : undefined
+                        }}
+                        title={currentUserProfile?.premium ? "Miembro Gold Activo" : "Obtener TS Connect Gold"}
+                      >
+                        <Crown size={16} className={currentUserProfile?.premium ? "fill-yellow-500" : ""} />
+                      </button>
+
+                      <button 
                         onClick={() => setShowSettings(true)} 
                         className="w-9 h-9 rounded-full border flex items-center justify-center transition-all cursor-pointer active:scale-90 hover:opacity-80"
                         style={{ 
@@ -1277,6 +1355,19 @@ export default function App() {
                         title="Tactile Settings"
                       >
                         <Settings size={16} />
+                      </button>
+
+                      <button 
+                        onClick={() => setShowGuide(true)} 
+                        className="w-9 h-9 rounded-full border flex items-center justify-center transition-all cursor-pointer active:scale-90 hover:opacity-80 animate-pulse"
+                        style={{ 
+                          borderColor: `${theme.primary}50`, 
+                          backgroundColor: `${theme.primary}18`,
+                          color: theme.primary 
+                        }}
+                        title="Guía Interactiva & Tutorial"
+                      >
+                        <HelpCircle size={16} />
                       </button>
                     </div>
                   </div>
@@ -1733,6 +1824,7 @@ export default function App() {
                     onStartChat={(userId) => navigateToChat(userId)}
                     onBlock={handleBlockUser}
                     themeId={themeId}
+                    onTriggerHaptic={(type) => triggerHaptic(vibeEnabled, vibeDuration, vibeIntensity, type)}
                   />
                 </div>
               )}
@@ -1875,6 +1967,45 @@ export default function App() {
         vibeIntensity={vibeIntensity}
         onVibeIntensityChange={handleVibeIntensityChange}
         onTestVibe={handleTestVibe}
+        currentUserProfile={currentUserProfile}
+        onLogout={() => {
+          setCurrentUserProfile(null);
+          setAppStage("login");
+          setShowSettings(false);
+        }}
+        onOpenPremium={() => {
+          setShowSettings(false);
+          setShowPremiumModal(true);
+        }}
+      />
+
+      <PremiumPaywallModal
+        visible={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+        userId={currentUserProfile?.uid}
+        themeId={themeId}
+        onPremiumActivated={async () => {
+          if (currentUserProfile?.uid) {
+            const updated = await getUserProfile(currentUserProfile.uid);
+            if (updated) {
+              setCurrentUserProfile(updated);
+            }
+          }
+        }}
+        vibeEnabled={vibeEnabled}
+        vibeDuration={vibeDuration}
+        vibeIntensity={vibeIntensity}
+        onTriggerHaptic={(type) => triggerHaptic(vibeEnabled, vibeDuration, vibeIntensity, type)}
+      />
+
+      <InteractiveGuide
+        visible={showGuide}
+        onClose={() => setShowGuide(false)}
+        themeId={themeId}
+        theme={theme}
+        vibeEnabled={vibeEnabled}
+        vibeDuration={vibeDuration}
+        vibeIntensity={vibeIntensity}
       />
         </ThemedBackground>
       )}
